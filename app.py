@@ -14,92 +14,92 @@ r"""
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
-html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #02030a;
+html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#02030a;
 }
 
-canvas {
-    display: block;
+canvas{
+    display:block;
 }
 
-#intro {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+#intro{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
     background:
         radial-gradient(
             circle at center,
-            #151b35 0%,
-            #050611 45%,
-            #010207 100%
+            rgba(30,20,65,.92),
+            rgba(1,2,8,.98)
         );
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: center;
+    color:white;
+    font-family:Arial,sans-serif;
+    text-align:center;
+    transition:opacity 1.5s;
 }
 
-#intro h1 {
-    margin: 0;
-    font-size: clamp(50px, 9vw, 120px);
-    letter-spacing: 18px;
-    font-weight: 200;
+#intro h1{
+    font-size:clamp(55px,9vw,120px);
+    font-weight:200;
+    letter-spacing:18px;
+    margin:0;
+    color:#fff;
     text-shadow:
-        0 0 10px #00eaff,
-        0 0 30px #00eaff,
-        0 0 70px #ff00c8;
+        0 0 8px #00eaff,
+        0 0 25px #00eaff,
+        0 0 60px #ff0088;
 }
 
-#intro p {
-    margin-top: 20px;
-    color: #a8b4d8;
-    letter-spacing: 6px;
-    font-size: 14px;
+#intro p{
+    margin-top:18px;
+    letter-spacing:7px;
+    color:#aab4d0;
 }
 
-#enter {
-    margin-top: 45px;
-    padding: 16px 45px;
-    border: 1px solid #00eaff;
-    background: rgba(0, 234, 255, 0.05);
-    color: #00eaff;
-    border-radius: 4px;
-    font-size: 14px;
-    letter-spacing: 5px;
-    cursor: pointer;
-    transition: .25s;
+#enter{
+    margin-top:45px;
+    padding:17px 45px;
+    background:rgba(0,220,255,.05);
+    border:1px solid #00eaff;
+    color:#00eaff;
+    font-size:14px;
+    letter-spacing:5px;
+    cursor:pointer;
+    border-radius:3px;
+    box-shadow:0 0 15px rgba(0,234,255,.2);
 }
 
-#enter:hover {
-    background: #00eaff;
-    color: #02030a;
+#enter:hover{
+    background:#00eaff;
+    color:#02030a;
     box-shadow:
         0 0 20px #00eaff,
-        0 0 60px #00eaff;
+        0 0 70px #00eaff;
 }
 
-#title {
-    position: fixed;
-    top: 20px;
-    left: 25px;
-    z-index: 10;
-    color: rgba(255,255,255,.7);
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    letter-spacing: 4px;
-    opacity: 0;
-    transition: 2s;
-    text-shadow: 0 0 10px #00eaff;
+#hud{
+    position:fixed;
+    top:18px;
+    left:20px;
+    z-index:10;
+    color:rgba(255,255,255,.65);
+    font:12px Arial;
+    letter-spacing:3px;
+    opacity:0;
+    transition:opacity 2s;
+    pointer-events:none;
 }
 </style>
 </head>
@@ -108,12 +108,12 @@ canvas {
 
 <div id="intro">
     <h1>NEON CITY</h1>
-    <p>WELCOME TO THE NIGHT</p>
-    <button id="enter">ENTER THE CITY</button>
+    <p>THE CITY NEVER SLEEPS</p>
+    <button id="enter">ENTER</button>
 </div>
 
-<div id="title">
-    SECTOR 07 · 02:17 AM
+<div id="hud">
+    NEON DISTRICT · 02:17 AM
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -125,14 +125,12 @@ let camera;
 let renderer;
 let clock;
 
-let started = false;
-
-const keys = {};
-
 let yaw = 0;
 let pitch = 0;
 
-let dragging = false;
+const keys = {};
+
+let mouseDown = false;
 let lastX = 0;
 let lastY = 0;
 
@@ -140,28 +138,34 @@ let rain;
 let cars = [];
 
 
-// ======================================================
-// ENTER
-// ======================================================
+// ============================================================
+// START
+// ============================================================
 
-document.getElementById("enter").onclick = function() {
+window.addEventListener("load", function(){
 
-    document.getElementById("intro").style.display = "none";
-    document.getElementById("title").style.opacity = "1";
+    createWorld();
 
-    started = true;
+    document.getElementById("enter").onclick = function(){
 
-    init();
+        document.getElementById("intro").style.opacity = "0";
+        document.getElementById("hud").style.opacity = "1";
 
-    startSound();
-};
+        setTimeout(function(){
+            document.getElementById("intro").style.display = "none";
+        },1500);
+
+        startAudio();
+    };
+
+});
 
 
-// ======================================================
-// INIT
-// ======================================================
+// ============================================================
+// CREATE WORLD
+// ============================================================
 
-function init() {
+function createWorld(){
 
     scene = new THREE.Scene();
 
@@ -170,38 +174,39 @@ function init() {
 
     scene.fog =
         new THREE.FogExp2(
-            0x070a18,
-            0.018
+            0x070817,
+            0.008
         );
 
 
     camera =
         new THREE.PerspectiveCamera(
-            72,
+            70,
             window.innerWidth /
             window.innerHeight,
-            0.1,
-            1500
+            .1,
+            2000
         );
 
-    /*
-       IMPORTANT:
 
-       The camera starts IN the street,
-       not above the city.
+    /*
+        THE PLAYER IS HERE.
+
+        Surrounded by buildings.
     */
 
     camera.position.set(
         0,
-        2.2,
-        45
+        2.4,
+        30
     );
 
 
     renderer =
         new THREE.WebGLRenderer({
-            antialias: true
+            antialias:true
         });
+
 
     renderer.setPixelRatio(
         Math.min(
@@ -210,99 +215,102 @@ function init() {
         )
     );
 
+
     renderer.setSize(
         window.innerWidth,
         window.innerHeight
     );
 
-    renderer.shadowMap.enabled = true;
 
     document.body.appendChild(
         renderer.domElement
     );
 
 
-    clock = new THREE.Clock();
+    clock =
+        new THREE.Clock();
 
 
     createSky();
-
     createLights();
-
     createRoad();
-
-    createSidewalks();
-
     createBuildings();
-
+    createNeon();
     createStreetLights();
-
-    createNeonSigns();
-
-    createWindows();
-
-    createRain();
-
     createCars();
-
+    createRain();
     createSteam();
+    createOverheadStructures();
+
+    setupControls();
 
     animate();
 }
 
 
-// ======================================================
+// ============================================================
 // SKY
-// ======================================================
+// ============================================================
 
-function createSky() {
+function createSky(){
 
     const sky =
         new THREE.Mesh(
+
             new THREE.SphereGeometry(
-                700,
+                1000,
                 32,
                 32
             ),
+
             new THREE.MeshBasicMaterial({
-                color: 0x030511,
-                side: THREE.BackSide
+                color:0x02030c,
+                side:THREE.BackSide
             })
+
         );
 
     scene.add(sky);
 
 
-    // distant glow
+    // moon
 
-    const glow =
-        new THREE.PointLight(
-            0x3925ff,
-            12,
-            500
+    const moon =
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                18,
+                32,
+                32
+            ),
+
+            new THREE.MeshBasicMaterial({
+                color:0x9bb8ff
+            })
+
         );
 
-    glow.position.set(
-        0,
-        70,
+    moon.position.set(
+        -180,
+        170,
         -400
     );
 
-    scene.add(glow);
+    scene.add(moon);
 }
 
 
-// ======================================================
-// LIGHTING
-// ======================================================
+// ============================================================
+// LIGHTS
+// ============================================================
 
-function createLights() {
+function createLights(){
 
     const ambient =
         new THREE.HemisphereLight(
-            0x172040,
+            0x24345e,
             0x020207,
-            1.4
+            1.5
         );
 
     scene.add(ambient);
@@ -310,15 +318,15 @@ function createLights() {
 
     const blue =
         new THREE.PointLight(
-            0x00aaff,
-            8,
-            160
+            0x00bfff,
+            18,
+            350
         );
 
     blue.position.set(
-        -30,
-        15,
-        0
+        -35,
+        30,
+        -80
     );
 
     scene.add(blue);
@@ -327,101 +335,109 @@ function createLights() {
     const pink =
         new THREE.PointLight(
             0xff0088,
-            8,
-            160
+            18,
+            350
         );
 
     pink.position.set(
-        30,
-        12,
-        -30
+        35,
+        25,
+        -140
     );
 
     scene.add(pink);
 }
 
 
-// ======================================================
+// ============================================================
 // ROAD
-// ======================================================
+// ============================================================
 
-function createRoad() {
+function createRoad(){
 
     const road =
         new THREE.Mesh(
+
             new THREE.PlaneGeometry(
-                40,
-                1000
+                50,
+                1800
             ),
+
             new THREE.MeshStandardMaterial({
-                color: 0x090b12,
-                roughness: 0.18,
-                metalness: 0.55
+                color:0x070910,
+                roughness:.16,
+                metalness:.7
             })
+
         );
 
-    road.rotation.x =
-        -Math.PI / 2;
 
-    road.position.y =
-        -0.05;
+    road.rotation.x =
+        -Math.PI/2;
 
     scene.add(road);
 
 
-    // center line
+    // wet road strips
 
-    for (let z = -480; z < 500; z += 18) {
+    for(let i=-2;i<=2;i++){
 
-        const line =
+        const strip =
             new THREE.Mesh(
+
                 new THREE.PlaneGeometry(
-                    0.35,
-                    8
+                    .25,
+                    1800
                 ),
+
                 new THREE.MeshBasicMaterial({
-                    color: 0x55ddff
+                    color:
+                        i===0
+                        ? 0x00aaff
+                        : 0x22283d,
+                    transparent:true,
+                    opacity:
+                        i===0?.55:.35
                 })
+
             );
 
-        line.rotation.x =
-            -Math.PI / 2;
+        strip.rotation.x =
+            -Math.PI/2;
 
-        line.position.set(
-            0,
-            0.01,
-            z
+        strip.position.set(
+            i*7,
+            .015,
+            0
         );
 
-        scene.add(line);
+        scene.add(strip);
     }
-}
 
 
-// ======================================================
-// SIDEWALKS
-// ======================================================
+    // sidewalks
 
-function createSidewalks() {
-
-    for (const x of [-25, 25]) {
+    for(const x of [-32,32]){
 
         const sidewalk =
             new THREE.Mesh(
+
                 new THREE.BoxGeometry(
-                    10,
-                    0.8,
-                    1000
+                    14,
+                    1,
+                    1800
                 ),
+
                 new THREE.MeshStandardMaterial({
-                    color: 0x171924,
-                    roughness: 0.5
+                    color:0x11131d,
+                    roughness:.6
                 })
+
             );
 
         sidewalk.position.set(
             x,
-            0.4,
+            .5,
             0
         );
 
@@ -430,205 +446,246 @@ function createSidewalks() {
 }
 
 
-// ======================================================
+// ============================================================
 // BUILDINGS
-// ======================================================
+// ============================================================
 
-function createBuildings() {
+function createBuildings(){
 
     /*
-       Buildings are deliberately placed
-       close to the street.
+       DENSE CITY WALLS
 
-       This creates the feeling that
-       the player is surrounded by the city.
+       Buildings are placed continuously
+       on both sides of the street.
     */
 
-    for (let z = -450; z < 450; z += 32) {
+    for(
+        let z=-850;
+        z<850;
+        z+=30
+    ){
 
-        createBuilding(
-            -1,
-            z
-        );
+        createBuilding(-1,z);
+        createBuilding(1,z);
 
-        createBuilding(
-            1,
-            z
-        );
+    }
+
+
+    // distant towers
+
+    for(let i=0;i<80;i++){
+
+        const b =
+            createBuilding(
+                Math.random()>.5?1:-1,
+                -850+
+                Math.random()*1700
+            );
+
+        b.position.x *= 1.7;
     }
 }
 
 
-function createBuilding(side, z) {
+function createBuilding(side,z){
 
     const width =
-        16 + Math.random() * 15;
+        18+
+        Math.random()*18;
 
     const depth =
-        24 + Math.random() * 18;
+        24+
+        Math.random()*28;
 
     const height =
-        35 + Math.random() * 120;
+        45+
+        Math.random()*150;
+
+
+    const colors=[
+        0x0b0d19,
+        0x101223,
+        0x131528,
+        0x0d101c,
+        0x18172a
+    ];
 
 
     const material =
         new THREE.MeshStandardMaterial({
             color:
-                Math.random() > .5
-                ? 0x101322
-                : 0x161529,
-
-            roughness: 0.7,
-            metalness: 0.2
+                colors[
+                    Math.floor(
+                        Math.random()*colors.length
+                    )
+                ],
+            roughness:.6,
+            metalness:.25
         });
 
 
     const building =
         new THREE.Mesh(
+
             new THREE.BoxGeometry(
                 width,
                 height,
                 depth
             ),
+
             material
         );
 
 
-    const x =
-        side *
-        (31 + Math.random() * 10);
-
-
     building.position.set(
-        x,
-        height / 2,
+
+        side *
+        (36+
+        Math.random()*12),
+
+        height/2,
+
         z
     );
 
 
-    building.castShadow = true;
-
-    building.receiveShadow = true;
-
     scene.add(building);
 
 
-    createBuildingGlow(
+    createWindows(
         building,
-        side
+        side,
+        width,
+        depth,
+        height
     );
+
+
+    return building;
 }
 
 
-// ======================================================
-// BUILDING GLOW
-// ======================================================
+// ============================================================
+// WINDOWS
+// ============================================================
 
-function createBuildingGlow(
+function createWindows(
     building,
-    side
-) {
+    side,
+    width,
+    depth,
+    height
+){
 
-    const height =
-        building.geometry.parameters.height;
-
-    const width =
-        building.geometry.parameters.width;
-
-    for (
-        let y = 8;
-        y < height - 5;
-        y += 7
-    ) {
-
-        if (Math.random() < 0.75) {
-
-            const color =
-                Math.random() > 0.5
-                ? 0x00eaff
-                : 0xff1493;
+    const windowColors=[
+        0x00eaff,
+        0xff0088,
+        0xffb300,
+        0x725cff
+    ];
 
 
-            const window =
-                new THREE.Mesh(
-                    new THREE.PlaneGeometry(
-                        2.4,
-                        1.1
-                    ),
-                    new THREE.MeshBasicMaterial({
-                        color: color,
-                        transparent: true,
-                        opacity:
-                            0.35 +
-                            Math.random() * 0.5
-                    })
+    for(
+        let y=7;
+        y<height-5;
+        y+=7
+    ){
+
+        for(
+            let i=0;
+            i<4;
+            i++
+        ){
+
+            if(Math.random()<.68){
+
+                const color =
+                    windowColors[
+                        Math.floor(
+                            Math.random()*
+                            windowColors.length
+                        )
+                    ];
+
+
+                const w =
+                    new THREE.Mesh(
+
+                        new THREE.PlaneGeometry(
+                            2.7,
+                            1.25
+                        ),
+
+                        new THREE.MeshBasicMaterial({
+                            color:color,
+                            transparent:true,
+                            opacity:
+                                .3+
+                                Math.random()*.7
+                        })
+
+                    );
+
+
+                w.position.set(
+
+                    building.position.x
+                    -
+                    side*
+                    (width/2+.03),
+
+                    y,
+
+                    building.position.z
+                    +
+                    (-depth/2+3+i*5)
                 );
 
 
-            window.position.set(
-                building.position.x -
-                side * (width / 2 + 0.03),
-
-                y,
-
-                building.position.z +
-                (Math.random() - .5) *
-                building.geometry.parameters.depth
-            );
+                w.rotation.y =
+                    side>0
+                    ? -Math.PI/2
+                    : Math.PI/2;
 
 
-            window.rotation.y =
-                side > 0
-                ? -Math.PI / 2
-                : Math.PI / 2;
-
-
-            scene.add(window);
+                scene.add(w);
+            }
         }
     }
 }
 
 
-// ======================================================
+// ============================================================
 // NEON SIGNS
-// ======================================================
+// ============================================================
 
-function createNeonSigns() {
+function createNeon(){
 
-    const signs = [
+    const words=[
         "NOVA",
-        "TOKYO",
+        "NEON",
         "VOID",
-        "SYNTH",
+        "TOKYO",
         "NEXUS",
-        "ARIA",
-        "ZEN",
-        "CYBER",
+        "SYNTH",
         "LUNA",
-        "ECHO",
-        "07",
-        "NIGHT"
+        "ARIA",
+        "CYBER",
+        "ZEN",
+        "BAR",
+        "HOTEL",
+        "CLUB",
+        "24H"
     ];
 
 
-    for (let i = 0; i < 45; i++) {
-
-        const text =
-            signs[
-                Math.floor(
-                    Math.random() *
-                    signs.length
-                )
-            ];
-
+    for(let i=0;i<100;i++){
 
         const canvas =
-            document.createElement(
-                "canvas"
-            );
+            document.createElement("canvas");
 
-        canvas.width = 512;
-        canvas.height = 160;
+        canvas.width=512;
+        canvas.height=180;
 
 
         const ctx =
@@ -636,48 +693,45 @@ function createNeonSigns() {
 
 
         const pink =
-            Math.random() > .5;
+            Math.random()>.5;
 
 
-        ctx.fillStyle =
-            "#050510";
+        ctx.fillStyle="#05050c";
 
         ctx.fillRect(
-            0,
-            0,
-            512,
-            160
+            0,0,512,180
         );
 
 
-        ctx.font =
-            "bold 70px Arial";
+        ctx.font=
+            "bold 65px Arial";
 
-        ctx.textAlign =
-            "center";
+        ctx.textAlign="center";
+        ctx.textBaseline="middle";
 
-        ctx.textBaseline =
-            "middle";
+        ctx.shadowBlur=35;
 
-
-        ctx.shadowBlur = 30;
-
-        ctx.shadowColor =
+        ctx.shadowColor=
             pink
             ? "#ff0088"
             : "#00eaff";
 
 
-        ctx.fillStyle =
+        ctx.fillStyle=
             pink
-            ? "#ff39aa"
-            : "#35efff";
+            ? "#ff3bac"
+            : "#42efff";
 
 
         ctx.fillText(
-            text,
+            words[
+                Math.floor(
+                    Math.random()*
+                    words.length
+                )
+            ],
             256,
-            80
+            90
         );
 
 
@@ -689,39 +743,45 @@ function createNeonSigns() {
 
         const sign =
             new THREE.Mesh(
+
                 new THREE.PlaneGeometry(
-                    10,
-                    3.2
+                    12,
+                    4.2
                 ),
+
                 new THREE.MeshBasicMaterial({
-                    map: texture,
-                    transparent: true
+                    map:texture,
+                    transparent:true
                 })
+
             );
 
 
         const side =
-            Math.random() > .5
-            ? -1
-            : 1;
+            Math.random()>.5
+            ? 1
+            : -1;
 
 
         sign.position.set(
-            side *
-            (29 + Math.random() * 4),
 
-            7 +
-            Math.random() * 45,
+            side*
+            (30+
+            Math.random()*9),
 
-            -430 +
-            Math.random() * 850
+            7+
+            Math.random()*100,
+
+            -820+
+            Math.random()*1640
+
         );
 
 
         sign.rotation.y =
-            side > 0
-            ? -Math.PI / 2
-            : Math.PI / 2;
+            side>0
+            ? -Math.PI/2
+            : Math.PI/2;
 
 
         scene.add(sign);
@@ -729,39 +789,42 @@ function createNeonSigns() {
 }
 
 
-// ======================================================
+// ============================================================
 // STREET LIGHTS
-// ======================================================
+// ============================================================
 
-function createStreetLights() {
+function createStreetLights(){
 
-    for (
-        let z = -450;
-        z < 450;
-        z += 30
-    ) {
+    for(
+        let z=-800;
+        z<800;
+        z+=28
+    ){
 
-        createLamp(-19, z);
-
-        createLamp(19, z);
+        createLamp(-18,z);
+        createLamp(18,z);
     }
 }
 
 
-function createLamp(x, z) {
+function createLamp(x,z){
 
     const pole =
         new THREE.Mesh(
+
             new THREE.CylinderGeometry(
-                0.12,
-                0.18,
+                .12,
+                .18,
                 9
             ),
+
             new THREE.MeshStandardMaterial({
-                color: 0x262935,
-                metalness: .8
+                color:0x292d3a,
+                metalness:.8
             })
+
         );
+
 
     pole.position.set(
         x,
@@ -772,137 +835,136 @@ function createLamp(x, z) {
     scene.add(pole);
 
 
-    const light =
+    const color =
+        Math.random()>.5
+        ? 0x00eaff
+        : 0xff0088;
+
+
+    const lamp =
         new THREE.PointLight(
-            Math.random() > .5
-            ? 0x00ddff
-            : 0xff1595,
-
-            3,
-
-            35
+            color,
+            5,
+            45
         );
 
-    light.position.set(
+
+    lamp.position.set(
         x,
         9,
         z
     );
 
-    scene.add(light);
 
-
-    const bulb =
-        new THREE.Mesh(
-            new THREE.SphereGeometry(
-                0.45,
-                8,
-                8
-            ),
-            new THREE.MeshBasicMaterial({
-                color:
-                    Math.random() > .5
-                    ? 0x00eaff
-                    : 0xff1493
-            })
-        );
-
-    bulb.position.set(
-        x,
-        9,
-        z
-    );
-
-    scene.add(bulb);
+    scene.add(lamp);
 }
 
 
-// ======================================================
-// RAIN
-// ======================================================
-
-function createRain() {
-
-    const count = 4500;
-
-    const geometry =
-        new THREE.BufferGeometry();
-
-    const positions = [];
-
-    for (
-        let i = 0;
-        i < count;
-        i++
-    ) {
-
-        positions.push(
-            (Math.random() - .5) * 180,
-            Math.random() * 100,
-            (Math.random() - .5) * 500
-        );
-    }
-
-
-    geometry.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(
-            positions,
-            3
-        )
-    );
-
-
-    const material =
-        new THREE.PointsMaterial({
-            color: 0x9edcff,
-            size: 0.18,
-            transparent: true,
-            opacity: 0.65
-        });
-
-
-    rain =
-        new THREE.Points(
-            geometry,
-            material
-        );
-
-    scene.add(rain);
-}
-
-
-// ======================================================
+// ============================================================
 // CARS
-// ======================================================
+// ============================================================
 
-function createCars() {
+function createCars(){
 
-    for (
-        let i = 0;
-        i < 12;
-        i++
-    ) {
+    for(let i=0;i<24;i++){
 
         const car =
-            createCar();
+            new THREE.Group();
+
+
+        const body =
+            new THREE.Mesh(
+
+                new THREE.BoxGeometry(
+                    5,
+                    1.4,
+                    9
+                ),
+
+                new THREE.MeshStandardMaterial({
+                    color:
+                        Math.random()>.5
+                        ? 0x101522
+                        : 0x17101e,
+                    metalness:.8,
+                    roughness:.2
+                })
+
+            );
+
+
+        body.position.y=1;
+
+        car.add(body);
+
+
+        const neon =
+            new THREE.Mesh(
+
+                new THREE.BoxGeometry(
+                    4,
+                    .15,
+                    .2
+                ),
+
+                new THREE.MeshBasicMaterial({
+                    color:0xff004c
+                })
+
+            );
+
+
+        neon.position.set(
+            0,
+            1.5,
+            4.55
+        );
+
+        car.add(neon);
+
+
+        const headlights =
+            new THREE.Mesh(
+
+                new THREE.BoxGeometry(
+                    4,
+                    .15,
+                    .2
+                ),
+
+                new THREE.MeshBasicMaterial({
+                    color:0x9eefff
+                })
+
+            );
+
+
+        headlights.position.set(
+            0,
+            1.5,
+            -4.55
+        );
+
+        car.add(headlights);
 
 
         car.position.set(
-            Math.random() > .5
+
+            Math.random()>.5
             ? -9
             : 9,
 
-            0.9,
+            0,
 
-            -400 +
-            Math.random() * 800
+            -800+
+            Math.random()*1600
+
         );
 
 
-        car.userData.speed =
-            15 +
-            Math.random() * 20;
+        car.userData.speed=
+            20+
+            Math.random()*30;
 
 
         scene.add(car);
@@ -912,117 +974,103 @@ function createCars() {
 }
 
 
-function createCar() {
+// ============================================================
+// RAIN
+// ============================================================
 
-    const group =
-        new THREE.Group();
+function createRain(){
+
+    const count=7000;
+
+    const geometry =
+        new THREE.BufferGeometry();
+
+    const positions=[];
 
 
-    const body =
-        new THREE.Mesh(
-            new THREE.BoxGeometry(
-                5,
-                1.2,
-                10
-            ),
-            new THREE.MeshStandardMaterial({
-                color: 0x11141f,
-                metalness: .8,
-                roughness: .2
-            })
+    for(let i=0;i<count;i++){
+
+        positions.push(
+
+            (Math.random()-.5)*160,
+
+            Math.random()*120,
+
+            (Math.random()-.5)*700
         );
-
-    group.add(body);
-
-
-    const glow =
-        new THREE.Mesh(
-            new THREE.BoxGeometry(
-                3.8,
-                .25,
-                .2
-            ),
-            new THREE.MeshBasicMaterial({
-                color: 0xff003c
-            })
-        );
+    }
 
 
-    glow.position.set(
-        0,
-        0.5,
-        5.1
+    geometry.setAttribute(
+        "position",
+
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
     );
 
-    group.add(glow);
+
+    const material =
+        new THREE.PointsMaterial({
+            color:0x9ddfff,
+            size:.16,
+            transparent:true,
+            opacity:.65
+        });
 
 
-    const head =
-        new THREE.Mesh(
-            new THREE.BoxGeometry(
-                3.8,
-                .25,
-                .2
-            ),
-            new THREE.MeshBasicMaterial({
-                color: 0xffffff
-            })
+    rain =
+        new THREE.Points(
+            geometry,
+            material
         );
 
 
-    head.position.set(
-        0,
-        0.5,
-        -5.1
-    );
-
-    group.add(head);
-
-
-    return group;
+    scene.add(rain);
 }
 
 
-// ======================================================
+// ============================================================
 // STEAM
-// ======================================================
+// ============================================================
 
-function createSteam() {
+function createSteam(){
 
-    for (
-        let i = 0;
-        i < 12;
-        i++
-    ) {
+    for(let i=0;i<30;i++){
 
         const steam =
             new THREE.Mesh(
+
                 new THREE.CylinderGeometry(
                     1.5,
-                    2,
-                    8,
-                    12,
+                    2.5,
+                    10,
+                    10,
                     1,
                     true
                 ),
+
                 new THREE.MeshBasicMaterial({
-                    color: 0x8895aa,
-                    transparent: true,
-                    opacity: .07
+                    color:0x8790a5,
+                    transparent:true,
+                    opacity:.055,
+                    side:THREE.DoubleSide
                 })
+
             );
 
 
         steam.position.set(
-            (Math.random() > .5
-                ? -1
-                : 1) *
-            (15 + Math.random() * 10),
 
-            4,
+            Math.random()>.5
+            ? -25
+            : 25,
 
-            -400 +
-            Math.random() * 800
+            5,
+
+            -800+
+            Math.random()*1600
         );
 
 
@@ -1031,100 +1079,170 @@ function createSteam() {
 }
 
 
-// ======================================================
-// MOVEMENT
-// ======================================================
+// ============================================================
+// OVERHEAD CITY STRUCTURES
+// ============================================================
 
-window.addEventListener(
-    "keydown",
-    function(e) {
+function createOverheadStructures(){
 
-        keys[
-            e.key.toLowerCase()
-        ] = true;
-    }
-);
+    for(
+        let z=-700;
+        z<700;
+        z+=100
+    ){
 
+        const bridge =
+            new THREE.Mesh(
 
-window.addEventListener(
-    "keyup",
-    function(e) {
+                new THREE.BoxGeometry(
+                    85,
+                    2,
+                    5
+                ),
 
-        keys[
-            e.key.toLowerCase()
-        ] = false;
-    }
-);
+                new THREE.MeshStandardMaterial({
+                    color:0x151a2a,
+                    metalness:.8
+                })
 
-
-// ======================================================
-// MOUSE
-// ======================================================
-
-window.addEventListener(
-    "mousedown",
-    function(e) {
-
-        if (!started) return;
-
-        dragging = true;
-
-        lastX = e.clientX;
-        lastY = e.clientY;
-    }
-);
-
-
-window.addEventListener(
-    "mouseup",
-    function() {
-
-        dragging = false;
-    }
-);
-
-
-window.addEventListener(
-    "mousemove",
-    function(e) {
-
-        if (!dragging || !started)
-            return;
-
-
-        const dx =
-            e.clientX - lastX;
-
-        const dy =
-            e.clientY - lastY;
-
-
-        lastX = e.clientX;
-        lastY = e.clientY;
-
-
-        yaw -= dx * .0025;
-
-        pitch -= dy * .002;
-
-
-        pitch =
-            Math.max(
-                -1.3,
-                Math.min(
-                    1.3,
-                    pitch
-                )
             );
+
+
+        bridge.position.set(
+            0,
+            32+
+            Math.random()*25,
+            z
+        );
+
+
+        scene.add(bridge);
+
+
+        // neon strip
+
+        const glow =
+            new THREE.Mesh(
+
+                new THREE.BoxGeometry(
+                    80,
+                    .25,
+                    .25
+                ),
+
+                new THREE.MeshBasicMaterial({
+                    color:
+                        Math.random()>.5
+                        ? 0xff0088
+                        : 0x00eaff
+                })
+
+            );
+
+
+        glow.position.set(
+            0,
+            bridge.position.y-1,
+            z
+        );
+
+
+        scene.add(glow);
     }
-);
+}
 
 
-// ======================================================
+// ============================================================
+// CONTROLS
+// ============================================================
+
+function setupControls(){
+
+    window.addEventListener(
+        "keydown",
+        function(e){
+
+            keys[
+                e.key.toLowerCase()
+            ]=true;
+        }
+    );
+
+
+    window.addEventListener(
+        "keyup",
+        function(e){
+
+            keys[
+                e.key.toLowerCase()
+            ]=false;
+        }
+    );
+
+
+    window.addEventListener(
+        "mousedown",
+        function(e){
+
+            mouseDown=true;
+
+            lastX=e.clientX;
+            lastY=e.clientY;
+        }
+    );
+
+
+    window.addEventListener(
+        "mouseup",
+        function(){
+
+            mouseDown=false;
+        }
+    );
+
+
+    window.addEventListener(
+        "mousemove",
+        function(e){
+
+            if(!mouseDown)
+                return;
+
+
+            const dx=
+                e.clientX-lastX;
+
+            const dy=
+                e.clientY-lastY;
+
+
+            lastX=e.clientX;
+            lastY=e.clientY;
+
+
+            yaw-=dx*.0025;
+
+            pitch-=dy*.002;
+
+
+            pitch=
+                Math.max(
+                    -1.2,
+                    Math.min(
+                        1.2,
+                        pitch
+                    )
+                );
+        }
+    );
+}
+
+
+// ============================================================
 // ANIMATION
-// ======================================================
+// ============================================================
 
-function animate() {
+function animate(){
 
     requestAnimationFrame(
         animate
@@ -1135,47 +1253,47 @@ function animate() {
         clock.getDelta();
 
 
-    // ------------------
-    // CAMERA
-    // ------------------
+    // -------------------------
+    // MOVEMENT
+    // -------------------------
 
-    const speed =
-        18 * delta;
-
-
-    let forward = 0;
-    let side = 0;
+    const speed=
+        22*delta;
 
 
-    if (
+    let forward=0;
+    let sideways=0;
+
+
+    if(
         keys["w"] ||
         keys["arrowup"]
     )
-        forward += 1;
+        forward=1;
 
 
-    if (
+    if(
         keys["s"] ||
         keys["arrowdown"]
     )
-        forward -= 1;
+        forward=-1;
 
 
-    if (
+    if(
         keys["a"] ||
         keys["arrowleft"]
     )
-        side -= 1;
+        sideways=-1;
 
 
-    if (
+    if(
         keys["d"] ||
         keys["arrowright"]
     )
-        side += 1;
+        sideways=1;
 
 
-    const direction =
+    const direction=
         new THREE.Vector3(
             Math.sin(yaw),
             0,
@@ -1183,7 +1301,7 @@ function animate() {
         );
 
 
-    const right =
+    const right=
         new THREE.Vector3(
             Math.cos(yaw),
             0,
@@ -1193,77 +1311,76 @@ function animate() {
 
     camera.position.addScaledVector(
         direction,
-        forward * speed
+        forward*speed
     );
 
 
     camera.position.addScaledVector(
         right,
-        side * speed
+        sideways*speed
     );
 
 
-    camera.position.y = 2.2;
+    camera.position.y=2.4;
 
 
-    camera.rotation.order =
-        "YXZ";
+    camera.rotation.order="YXZ";
 
-    camera.rotation.y =
-        yaw;
+    camera.rotation.y=yaw;
 
-    camera.rotation.x =
-        pitch;
+    camera.rotation.x=pitch;
 
 
-    // ------------------
+    // -------------------------
     // RAIN
-    // ------------------
+    // -------------------------
 
-    if (rain) {
+    if(rain){
 
-        const positions =
-            rain.geometry.attributes
-                .position.array;
-
-
-        for (
-            let i = 1;
-            i < positions.length;
-            i += 3
-        ) {
-
-            positions[i] -=
-                45 * delta;
+        const p=
+            rain.geometry
+            .attributes
+            .position
+            .array;
 
 
-            if (positions[i] < 0) {
+        for(
+            let i=1;
+            i<p.length;
+            i+=3
+        ){
 
-                positions[i] =
-                    100;
-            }
+            p[i]-=55*delta;
+
+
+            if(p[i]<0)
+                p[i]=120;
         }
 
 
-        rain.geometry.attributes
-            .position.needsUpdate = true;
+        rain.geometry
+            .attributes
+            .position
+            .needsUpdate=true;
     }
 
 
-    // ------------------
+    // -------------------------
     // CARS
-    // ------------------
+    // -------------------------
 
-    for (const car of cars) {
+    for(const car of cars){
 
         car.position.z +=
-            car.userData.speed *
+            car.userData.speed*
             delta;
 
 
-        if (car.position.z > 450) {
+        if(
+            car.position.z>850
+        ){
 
-            car.position.z = -450;
+            car.position.z=-850;
         }
     }
 
@@ -1275,25 +1392,19 @@ function animate() {
 }
 
 
-// ======================================================
+// ============================================================
 // RESIZE
-// ======================================================
+// ============================================================
 
 window.addEventListener(
     "resize",
-    function() {
+    function(){
 
-        if (!camera)
-            return;
-
-
-        camera.aspect =
-            window.innerWidth /
+        camera.aspect=
+            window.innerWidth/
             window.innerHeight;
 
-
         camera.updateProjectionMatrix();
-
 
         renderer.setSize(
             window.innerWidth,
@@ -1303,60 +1414,52 @@ window.addEventListener(
 );
 
 
-// ======================================================
-// AMBIENT AUDIO
-// ======================================================
+// ============================================================
+// AUDIO
+// ============================================================
 
-function startSound() {
+function startAudio(){
 
-    try {
+    try{
 
-        const AudioContext =
+        const AudioContext=
             window.AudioContext ||
             window.webkitAudioContext;
 
 
-        if (!AudioContext)
+        if(!AudioContext)
             return;
 
 
-        const audio =
+        const audio=
             new AudioContext();
 
 
-        const osc =
+        const oscillator=
             audio.createOscillator();
 
 
-        const gain =
+        const gain=
             audio.createGain();
 
 
-        osc.type = "sine";
+        oscillator.type="sine";
 
-        osc.frequency.value =
-            48;
+        oscillator.frequency.value=48;
 
-
-        gain.gain.value =
-            0.018;
+        gain.gain.value=.012;
 
 
-        osc.connect(gain);
+        oscillator.connect(gain);
 
         gain.connect(
             audio.destination
         );
 
 
-        osc.start();
+        oscillator.start();
 
-    } catch (e) {
-
-        console.log(
-            "Audio unavailable"
-        );
-    }
+    }catch(e){}
 }
 
 </script>
