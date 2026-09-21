@@ -8,57 +8,27 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Hide Streamlit's normal interface.
-st.markdown(
+components.html(
     """
-    <style>
-        html, body, [data-testid="stAppViewContainer"] {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background: #000;
-        }
-
-        [data-testid="stHeader"],
-        [data-testid="stToolbar"],
-        [data-testid="stSidebar"],
-        footer {
-            display: none !important;
-        }
-
-        .block-container {
-            padding: 0 !important;
-            max-width: 100% !important;
-        }
-
-        iframe {
-            border: none !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-html = r"""
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
     width: 100%;
     height: 100%;
-    background: #000;
+    overflow: hidden;
+    background: #07130f;
     font-family: Georgia, serif;
 }
 
-#world {
-    width: 100vw;
-    height: 100vh;
+canvas {
+    display: block;
 }
 
 #intro {
@@ -66,631 +36,485 @@ html, body {
     inset: 0;
     z-index: 20;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     flex-direction: column;
+    background:
+        radial-gradient(circle at center,
+        rgba(255,255,255,0.08),
+        rgba(3,12,9,0.97));
     color: white;
     text-align: center;
-
-    background:
-        radial-gradient(
-            circle at center,
-            rgba(35,55,45,.20),
-            rgba(0,0,0,.92)
-        );
-
-    transition: opacity 2s ease;
 }
 
 #intro h1 {
-    font-size: clamp(55px, 8vw, 110px);
-    margin: 0;
-    font-weight: 400;
-    letter-spacing: 8px;
-    text-shadow: 0 5px 35px rgba(0,0,0,.7);
+    font-size: clamp(48px, 9vw, 110px);
+    letter-spacing: 14px;
+    margin: 0 0 15px 0;
+    font-weight: normal;
 }
 
 #intro p {
-    font-size: 19px;
+    font-size: 18px;
+    opacity: 0.8;
     letter-spacing: 3px;
-    opacity: .85;
+    margin-bottom: 40px;
 }
 
 #enter {
-    margin-top: 35px;
-    padding: 15px 50px;
+    padding: 16px 42px;
+    border: 1px solid rgba(255,255,255,0.7);
     border-radius: 40px;
-    border: 1px solid rgba(255,255,255,.7);
+    background: rgba(255,255,255,0.08);
     color: white;
-    background: rgba(255,255,255,.10);
-    font-family: Georgia, serif;
-    font-size: 18px;
+    font-size: 16px;
+    letter-spacing: 4px;
     cursor: pointer;
-    backdrop-filter: blur(8px);
+    transition: 0.3s;
 }
 
 #enter:hover {
-    background: rgba(255,255,255,.25);
+    background: white;
+    color: #17251d;
+    transform: scale(1.05);
 }
 
-#title {
+#hud {
     position: fixed;
-    top: 25px;
-    left: 30px;
-    z-index: 5;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
     color: white;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 1s;
+    text-shadow: 0 2px 4px black;
     pointer-events: none;
-    text-shadow: 0 3px 15px black;
 }
 
-#title h2 {
-    margin: 0;
-    font-size: 28px;
-    letter-spacing: 5px;
-    font-weight: 400;
-}
-
-#title span {
-    font-size: 12px;
-    letter-spacing: 2px;
-    opacity: .75;
+#name {
+    font-size: 18px;
+    margin-bottom: 8px;
 }
 
 #instructions {
-    position: fixed;
-    bottom: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 5;
-    color: rgba(255,255,255,.8);
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    letter-spacing: 1px;
-    background: rgba(0,0,0,.22);
-    padding: 9px 16px;
-    border-radius: 20px;
-    backdrop-filter: blur(5px);
-    pointer-events: none;
-}
-
-#character {
-    position: fixed;
-    right: 25px;
-    top: 25px;
-    z-index: 5;
-    color: white;
-    text-align: right;
-    text-shadow: 0 3px 15px black;
-    font-family: Georgia, serif;
-}
-
-#character strong {
-    font-size: 18px;
-    letter-spacing: 2px;
-}
-
-#character small {
-    display: block;
-    opacity: .7;
-    margin-top: 5px;
+    opacity: 0.7;
 }
 </style>
 </head>
 
 <body>
 
-<div id="world"></div>
-
 <div id="intro">
     <h1>ELYSIAN</h1>
-    <p>Not just an app. Your imaginary heaven.</p>
+    <p>YOUR IMAGINARY HEAVEN</p>
     <button id="enter">ENTER</button>
 </div>
 
-<div id="title">
-    <h2>ELYSIAN</h2>
-    <span>YOUR IMAGINARY HEAVEN</span>
-</div>
-
-<div id="character">
-    <strong id="characterName"></strong>
-    <small id="characterType"></small>
-</div>
-
-<div id="instructions">
-    WASD / ARROWS — WALK &nbsp; • &nbsp; MOUSE — LOOK AROUND
+<div id="hud">
+    <div id="name"></div>
+    <div id="instructions">
+        WASD / ARROW KEYS TO WALK · DRAG TO LOOK
+    </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/PointerLockControls.js"></script>
 
 <script>
 
-// ============================================================
-// ELYSIAN
-// ============================================================
+let scene;
+let camera;
+let renderer;
+let clock;
 
-const container = document.getElementById("world");
+let started = false;
 
-const scene = new THREE.Scene();
+const keys = {};
 
-scene.fog = new THREE.FogExp2(
-    0x9db9a8,
-    0.0025
-);
+let yaw = 0;
+let pitch = 0;
+
+let dragging = false;
+let lastMouseX = 0;
+let lastMouseY = 0;
+
+const names = [
+    "Aurelia",
+    "Elara",
+    "Seraphina",
+    "Celeste",
+    "Aurora",
+    "Isabella",
+    "Rosalie",
+    "Luna",
+    "Evelyn",
+    "Adrian",
+    "Julian",
+    "Alexander",
+    "Sebastian",
+    "Lucian",
+    "Elias",
+    "Orion"
+];
+
+document.getElementById("name").innerHTML =
+    "You have met " +
+    names[Math.floor(Math.random() * names.length)];
 
 
-// ------------------------------------------------------------
-// CAMERA
-// ------------------------------------------------------------
+// ----------------------------
+// ENTER
+// ----------------------------
 
-const camera = new THREE.PerspectiveCamera(
-    70,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    3000
-);
+document.getElementById("enter").addEventListener("click", function() {
 
-camera.position.set(0, 7, 70);
+    document.getElementById("intro").style.display = "none";
+    document.getElementById("hud").style.opacity = "1";
 
+    started = true;
 
-// ------------------------------------------------------------
-// RENDERER
-// ------------------------------------------------------------
+    initWorld();
 
-const renderer = new THREE.WebGLRenderer({
-    antialias: true
+    startAmbientSound();
 });
 
-renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio, 2)
-);
 
-renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
-);
+// ----------------------------
+// WORLD
+// ----------------------------
 
-renderer.shadowMap.enabled = true;
+function initWorld() {
 
-renderer.shadowMap.type =
-    THREE.PCFSoftShadowMap;
+    scene = new THREE.Scene();
 
-renderer.outputEncoding =
-    THREE.sRGBEncoding;
+    scene.background = new THREE.Color(0x9cc7d8);
 
-container.appendChild(renderer.domElement);
-
-
-// ------------------------------------------------------------
-// SKY
-// ------------------------------------------------------------
-
-const skyGeometry =
-    new THREE.SphereGeometry(
-        1800,
-        32,
-        32
+    scene.fog = new THREE.FogExp2(
+        0x9cc7d8,
+        0.0025
     );
 
-const skyMaterial =
-    new THREE.MeshBasicMaterial({
-        color: 0x87aebf,
-        side: THREE.BackSide
+
+    camera = new THREE.PerspectiveCamera(
+        65,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        2000
+    );
+
+    camera.position.set(
+        0,
+        7,
+        55
+    );
+
+
+    renderer = new THREE.WebGLRenderer({
+        antialias: true
     });
 
-const sky =
-    new THREE.Mesh(
-        skyGeometry,
-        skyMaterial
+    renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, 2)
     );
 
-scene.add(sky);
-
-
-// ------------------------------------------------------------
-// LIGHT
-// ------------------------------------------------------------
-
-const ambient =
-    new THREE.HemisphereLight(
-        0xb9d6ff,
-        0x40513c,
-        1.8
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
     );
 
-scene.add(ambient);
+    renderer.shadowMap.enabled = true;
 
-const sun =
-    new THREE.DirectionalLight(
-        0xffd5a0,
-        3
+    document.body.appendChild(renderer.domElement);
+
+
+    clock = new THREE.Clock();
+
+
+    // LIGHTING
+
+    const hemi = new THREE.HemisphereLight(
+        0xcceeff,
+        0x526044,
+        1.6
     );
 
-sun.position.set(
-    -250,
-    350,
-    -300
-);
-
-sun.castShadow = true;
-
-sun.shadow.mapSize.width = 2048;
-sun.shadow.mapSize.height = 2048;
-
-scene.add(sun);
+    scene.add(hemi);
 
 
-// ------------------------------------------------------------
-// GROUND
-// ------------------------------------------------------------
-
-const groundGeometry =
-    new THREE.PlaneGeometry(
-        1200,
-        1200,
-        100,
-        100
+    const sun = new THREE.DirectionalLight(
+        0xfff1c7,
+        2
     );
 
-const positions =
-    groundGeometry.attributes.position;
-
-for (
-    let i = 0;
-    i < positions.count;
-    i++
-) {
-
-    const x = positions.getX(i);
-    const y = positions.getY(i);
-
-    let height =
-        Math.sin(x * 0.015) * 2 +
-        Math.cos(y * 0.018) * 2 +
-        Math.sin((x + y) * 0.009) * 4;
-
-    positions.setZ(
-        i,
-        height
+    sun.position.set(
+        -100,
+        150,
+        80
     );
+
+    sun.castShadow = true;
+
+    scene.add(sun);
+
+
+    // GROUND
+
+    createGround();
+
+
+    // RIVER
+
+    createRiver();
+
+
+    // MOUNTAINS
+
+    createMountains();
+
+
+    // TREES
+
+    for (let i = 0; i < 120; i++) {
+        createTree(
+            (Math.random() - 0.5) * 600,
+            (Math.random() - 0.5) * 500
+        );
+    }
+
+
+    // FLOWERS
+
+    for (let i = 0; i < 700; i++) {
+        createFlower(
+            (Math.random() - 0.5) * 450,
+            (Math.random() - 0.5) * 400
+        );
+    }
+
+
+    // CASTLE
+
+    createCastle();
+
+
+    // HORSES
+
+    for (let i = 0; i < 5; i++) {
+
+        createHorse(
+            -80 + Math.random() * 160,
+            20 + Math.random() * 80
+        );
+
+    }
+
+
+    // FIRE
+
+    createFireflies();
+
+
+    animate();
 }
 
-groundGeometry.computeVertexNormals();
 
-const groundMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x477044,
-        roughness: 1
-    });
+// ----------------------------
+// GROUND
+// ----------------------------
 
-const ground =
-    new THREE.Mesh(
-        groundGeometry,
-        groundMaterial
-    );
-
-ground.rotation.x =
-    -Math.PI / 2;
-
-ground.receiveShadow = true;
-
-scene.add(ground);
-
-
-// ------------------------------------------------------------
-// MOUNTAINS
-// ------------------------------------------------------------
-
-function createMountain(
-    x,
-    z,
-    height,
-    width
-) {
+function createGround() {
 
     const geometry =
-        new THREE.ConeGeometry(
-            width,
-            height,
-            7
+        new THREE.PlaneGeometry(
+            1000,
+            1000,
+            100,
+            100
         );
 
     const material =
         new THREE.MeshStandardMaterial({
-            color: 0x435c58,
+            color: 0x6e9b59,
             roughness: 1
         });
 
-    const mountain =
+    const ground =
         new THREE.Mesh(
             geometry,
             material
         );
 
-    mountain.position.set(
-        x,
-        height / 2 - 3,
-        z
-    );
+    ground.rotation.x = -Math.PI / 2;
 
-    mountain.rotation.y =
-        Math.random() * Math.PI;
+    ground.receiveShadow = true;
 
-    mountain.castShadow = true;
-
-    scene.add(mountain);
-
-
-    // Snow cap
-    const snowGeometry =
-        new THREE.ConeGeometry(
-            width * .43,
-            height * .35,
-            7
-        );
-
-    const snowMaterial =
-        new THREE.MeshStandardMaterial({
-            color: 0xe8eee9,
-            roughness: 1
-        });
-
-    const snow =
-        new THREE.Mesh(
-            snowGeometry,
-            snowMaterial
-        );
-
-    snow.position.set(
-        x,
-        height * .78,
-        z
-    );
-
-    snow.rotation.y =
-        mountain.rotation.y;
-
-    scene.add(snow);
+    scene.add(ground);
 }
 
 
-createMountain(-260, -270, 180, 110);
-createMountain(-100, -310, 240, 130);
-createMountain(100, -330, 210, 120);
-createMountain(280, -290, 170, 105);
-
-createMountain(-380, -100, 130, 100);
-createMountain(380, -100, 150, 110);
-
-
-// ------------------------------------------------------------
+// ----------------------------
 // RIVER
-// ------------------------------------------------------------
+// ----------------------------
 
-const riverShape =
-    new THREE.Shape();
+function createRiver() {
 
-riverShape.moveTo(-400, 0);
-
-riverShape.bezierCurveTo(
-    -200, 40,
-    -100, -50,
-    0, 0
-);
-
-riverShape.bezierCurveTo(
-    130, 60,
-    220, -50,
-    430, 20
-);
-
-riverShape.lineTo(430, -55);
-riverShape.bezierCurveTo(
-    220, -110,
-    130, 0,
-    0, -60
-);
-
-riverShape.bezierCurveTo(
-    -100, -110,
-    -200, -20,
-    -400, -60
-);
-
-const riverGeometry =
-    new THREE.ShapeGeometry(
-        riverShape,
-        32
-    );
-
-const riverMaterial =
-    new THREE.MeshPhysicalMaterial({
-        color: 0x4bafd0,
-        transparent: true,
-        opacity: .72,
-        roughness: .15,
-        metalness: .05
-    });
-
-const river =
-    new THREE.Mesh(
-        riverGeometry,
-        riverMaterial
-    );
-
-river.rotation.x =
-    -Math.PI / 2;
-
-river.position.set(
-    0,
-    .7,
-    -80
-);
-
-scene.add(river);
-
-
-// ------------------------------------------------------------
-// FLOWERS
-// ------------------------------------------------------------
-
-const flowerColors = [
-    0xffd1dc,
-    0xffe28a,
-    0xffffff,
-    0xbfa4ff,
-    0xff8fab,
-    0xffa66b
-];
-
-function createFlower(
-    x,
-    z
-) {
-
-    const group =
-        new THREE.Group();
-
-    const stemGeometry =
-        new THREE.CylinderGeometry(
-            .025,
-            .035,
-            .7,
-            5
+    const geometry =
+        new THREE.PlaneGeometry(
+            40,
+            900
         );
 
-    const stemMaterial =
+    const material =
         new THREE.MeshStandardMaterial({
-            color: 0x3b7c42
+            color: 0x5ca9c8,
+            transparent: true,
+            opacity: 0.78,
+            roughness: 0.15,
+            metalness: 0.05
         });
 
-    const stem =
+    const river =
         new THREE.Mesh(
-            stemGeometry,
-            stemMaterial
+            geometry,
+            material
         );
 
-    stem.position.y = .35;
+    river.rotation.x = -Math.PI / 2;
 
-    group.add(stem);
+    river.position.y = 0.05;
+
+    river.position.x = 15;
+
+    scene.add(river);
+}
 
 
-    const petalGeometry =
-        new THREE.SphereGeometry(
-            .13,
-            6,
-            6
-        );
+// ----------------------------
+// MOUNTAINS
+// ----------------------------
 
-    const petalMaterial =
-        new THREE.MeshStandardMaterial({
-            color:
-                flowerColors[
-                    Math.floor(
-                        Math.random() *
-                        flowerColors.length
-                    )
-                ]
-        });
+function createMountains() {
 
-    for (
-        let i = 0;
-        i < 5;
-        i++
-    ) {
+    for (let i = 0; i < 18; i++) {
 
-        const petal =
-            new THREE.Mesh(
-                petalGeometry,
-                petalMaterial
+        const height =
+            70 + Math.random() * 90;
+
+        const radius =
+            60 + Math.random() * 70;
+
+        const geometry =
+            new THREE.ConeGeometry(
+                radius,
+                height,
+                7
             );
 
-        const angle =
-            (Math.PI * 2 / 5) * i;
+        const material =
+            new THREE.MeshStandardMaterial({
+                color: 0x58735e,
+                roughness: 1
+            });
 
-        petal.position.set(
-            Math.cos(angle) * .14,
-            .75,
-            Math.sin(angle) * .14
+        const mountain =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
+
+        mountain.position.set(
+            (Math.random() - 0.5) * 700,
+            height / 2,
+            -180 - Math.random() * 300
         );
 
-        group.add(petal);
+        scene.add(mountain);
+
+
+        // snow cap
+
+        if (height > 100) {
+
+            const snow =
+                new THREE.ConeGeometry(
+                    radius * 0.38,
+                    height * 0.25,
+                    7
+                );
+
+            const snowMat =
+                new THREE.MeshStandardMaterial({
+                    color: 0xf5f6ed
+                });
+
+            const snowMesh =
+                new THREE.Mesh(
+                    snow,
+                    snowMat
+                );
+
+            snowMesh.position.copy(
+                mountain.position
+            );
+
+            snowMesh.position.y +=
+                height * 0.37;
+
+            scene.add(snowMesh);
+        }
     }
-
-    group.position.set(
-        x,
-        0,
-        z
-    );
-
-    scene.add(group);
 }
 
 
-for (
-    let i = 0;
-    i < 1000;
-    i++
-) {
-
-    const x =
-        (Math.random() - .5) * 800;
-
-    const z =
-        (Math.random() - .5) * 500;
-
-    // Keep some space around the river.
-    if (
-        Math.abs(z + 80) < 25
-    ) continue;
-
-    createFlower(x, z);
-}
-
-
-// ------------------------------------------------------------
-// TREES
-// ------------------------------------------------------------
+// ----------------------------
+// TREE
+// ----------------------------
 
 function createTree(x, z) {
 
     const group =
         new THREE.Group();
 
+
     const trunk =
         new THREE.Mesh(
             new THREE.CylinderGeometry(
-                .35,
-                .5,
-                5,
-                8
+                1.3,
+                2,
+                12,
+                7
             ),
             new THREE.MeshStandardMaterial({
-                color: 0x62432b
+                color: 0x68472c
             })
         );
 
-    trunk.position.y = 2.5;
+    trunk.position.y = 6;
 
     group.add(trunk);
 
 
-    const leaves =
-        new THREE.Mesh(
-            new THREE.ConeGeometry(
-                3.5,
-                8,
-                8
-            ),
-            new THREE.MeshStandardMaterial({
-                color: 0x28563b
-            })
-        );
+    for (let i = 0; i < 3; i++) {
 
-    leaves.position.y = 7;
+        const leaves =
+            new THREE.Mesh(
+                new THREE.ConeGeometry(
+                    7 - i * 1.2,
+                    14,
+                    8
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0x315f3a
+                })
+            );
 
-    group.add(leaves);
+        leaves.position.y =
+            12 + i * 7;
+
+        group.add(leaves);
+    }
+
 
     group.position.set(
         x,
@@ -698,169 +522,227 @@ function createTree(x, z) {
         z
     );
 
-    group.castShadow = true;
+    scene.add(group);
+}
+
+
+// ----------------------------
+// FLOWER
+// ----------------------------
+
+function createFlower(x, z) {
+
+    const group =
+        new THREE.Group();
+
+
+    const stem =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                0.06,
+                0.08,
+                1.8,
+                5
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0x3c743f
+            })
+        );
+
+    stem.position.y = 0.9;
+
+    group.add(stem);
+
+
+    const colorList = [
+        0xffd1dc,
+        0xfff1a8,
+        0xffffff,
+        0xcdb4ff,
+        0xffb7ce
+    ];
+
+    const color =
+        colorList[
+            Math.floor(
+                Math.random() * colorList.length
+            )
+        ];
+
+
+    for (let i = 0; i < 5; i++) {
+
+        const petal =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    0.32,
+                    8,
+                    8
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: color
+                })
+            );
+
+        const angle =
+            (i / 5) * Math.PI * 2;
+
+        petal.position.set(
+            Math.cos(angle) * 0.38,
+            1.8,
+            Math.sin(angle) * 0.38
+        );
+
+        group.add(petal);
+    }
+
+
+    const center =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                0.22,
+                8,
+                8
+            ),
+            new THREE.MeshStandardMaterial({
+                color: 0xffd75a
+            })
+        );
+
+    center.position.y = 1.8;
+
+    group.add(center);
+
+
+    group.position.set(
+        x,
+        0,
+        z
+    );
 
     scene.add(group);
 }
 
 
-for (
-    let i = 0;
-    i < 130;
-    i++
-) {
-
-    const x =
-        (Math.random() - .5) * 900;
-
-    const z =
-        (Math.random() - .5) * 500;
-
-    if (
-        Math.abs(x) < 100 &&
-        z > -200
-    ) continue;
-
-    createTree(x, z);
-}
-
-
-// ------------------------------------------------------------
+// ----------------------------
 // CASTLE
-// ------------------------------------------------------------
+// ----------------------------
 
-const castle =
-    new THREE.Group();
+function createCastle() {
 
-
-function castleTower(
-    x,
-    z,
-    height = 28
-) {
-
-    const tower =
-        new THREE.Mesh(
-            new THREE.CylinderGeometry(
-                5,
-                6,
-                height,
-                10
-            ),
-            new THREE.MeshStandardMaterial({
-                color: 0xd9c5a6
-            })
-        );
-
-    tower.position.set(
-        x,
-        height / 2,
-        z
-    );
-
-    tower.castShadow = true;
-
-    castle.add(tower);
-
-
-    const roof =
-        new THREE.Mesh(
-            new THREE.ConeGeometry(
-                7,
-                12,
-                10
-            ),
-            new THREE.MeshStandardMaterial({
-                color: 0x58394f
-            })
-        );
-
-    roof.position.set(
-        x,
-        height + 6,
-        z
-    );
-
-    castle.add(roof);
-}
-
-
-const castleBody =
-    new THREE.Mesh(
-        new THREE.BoxGeometry(
-            70,
-            30,
-            40
-        ),
-        new THREE.MeshStandardMaterial({
-            color: 0xdcc7aa
-        })
-    );
-
-castleBody.position.y = 15;
-
-castle.add(castleBody);
-
-castleTower(-32, -15, 40);
-castleTower(32, -15, 40);
-castleTower(-32, 15, 35);
-castleTower(32, 15, 35);
-
-
-const mainRoof =
-    new THREE.Mesh(
-        new THREE.ConeGeometry(
-            28,
-            20,
-            4
-        ),
-        new THREE.MeshStandardMaterial({
-            color: 0x62415b
-        })
-    );
-
-mainRoof.position.y = 40;
-
-mainRoof.rotation.y =
-    Math.PI / 4;
-
-castle.add(mainRoof);
-
-castle.position.set(
-    180,
-    0,
-    -230
-);
-
-scene.add(castle);
-
-
-// ------------------------------------------------------------
-// HORSES
-// ------------------------------------------------------------
-
-function createHorse(
-    x,
-    z,
-    color
-) {
-
-    const horse =
+    const castle =
         new THREE.Group();
+
 
     const body =
         new THREE.Mesh(
             new THREE.BoxGeometry(
-                4,
-                2.1,
-                1.5
+                45,
+                25,
+                28
             ),
             new THREE.MeshStandardMaterial({
-                color: color
+                color: 0xe7dfd0
             })
         );
 
-    body.position.y = 3;
+    body.position.y = 12.5;
+
+    castle.add(body);
+
+
+    for (let i = 0; i < 4; i++) {
+
+        const tower =
+            new THREE.Mesh(
+                new THREE.CylinderGeometry(
+                    6,
+                    6,
+                    36,
+                    10
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0xe9e2d3
+                })
+            );
+
+
+        const roof =
+            new THREE.Mesh(
+                new THREE.ConeGeometry(
+                    7,
+                    12,
+                    10
+                ),
+                new THREE.MeshStandardMaterial({
+                    color: 0x6d4b72
+                })
+            );
+
+
+        const positions = [
+            [-20, -11],
+            [20, -11],
+            [-20, 11],
+            [20, 11]
+        ];
+
+
+        tower.position.set(
+            positions[i][0],
+            18,
+            positions[i][1]
+        );
+
+        roof.position.set(
+            positions[i][0],
+            42,
+            positions[i][1]
+        );
+
+
+        castle.add(tower);
+        castle.add(roof);
+    }
+
+
+    castle.position.set(
+        0,
+        0,
+        -80
+    );
+
+    scene.add(castle);
+}
+
+
+// ----------------------------
+// HORSE
+// ----------------------------
+
+function createHorse(x, z) {
+
+    const horse =
+        new THREE.Group();
+
+
+    const brown =
+        new THREE.MeshStandardMaterial({
+            color: 0x6b4226
+        });
+
+
+    const body =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                7,
+                3,
+                2.5
+            ),
+            brown
+        );
+
+    body.position.y = 4;
 
     horse.add(body);
 
@@ -868,23 +750,20 @@ function createHorse(
     const neck =
         new THREE.Mesh(
             new THREE.BoxGeometry(
-                1.2,
-                3.4,
-                1.2
+                2,
+                5,
+                2
             ),
-            new THREE.MeshStandardMaterial({
-                color: color
-            })
+            brown
         );
 
     neck.position.set(
-        1.7,
-        4.2,
+        3,
+        6,
         0
     );
 
-    neck.rotation.z =
-        -.25;
+    neck.rotation.z = -0.3;
 
     horse.add(neck);
 
@@ -892,52 +771,43 @@ function createHorse(
     const head =
         new THREE.Mesh(
             new THREE.BoxGeometry(
-                1.8,
-                1.4,
-                1.2
+                3,
+                2.5,
+                2
             ),
-            new THREE.MeshStandardMaterial({
-                color: color
-            })
+            brown
         );
 
     head.position.set(
-        2.5,
-        5.7,
+        4.5,
+        8,
         0
     );
 
     horse.add(head);
 
 
-    // Legs
-    for (
-        let i = 0;
-        i < 4;
-        i++
-    ) {
+    for (let i = 0; i < 4; i++) {
 
         const leg =
             new THREE.Mesh(
                 new THREE.CylinderGeometry(
-                    .18,
-                    .22,
-                    3,
-                    6
+                    0.35,
+                    0.45,
+                    4
                 ),
-                new THREE.MeshStandardMaterial({
-                    color: color
-                })
+                brown
             );
 
         leg.position.set(
-            i < 2 ? 1.2 : -1.2,
-            1.5,
-            i % 2 === 0 ? .5 : -.5
+            i < 2 ? -2 : 2,
+            2,
+            i % 2 === 0 ? -0.8 : 0.8
         );
 
         horse.add(leg);
     }
+
 
     horse.position.set(
         x,
@@ -945,466 +815,236 @@ function createHorse(
         z
     );
 
+    horse.scale.setScalar(0.8);
+
     scene.add(horse);
-
-    return horse;
 }
 
 
-const horses = [];
-
-horses.push(
-    createHorse(
-        -70,
-        -20,
-        0xf3eee1
-    )
-);
-
-horses.push(
-    createHorse(
-        -25,
-        20,
-        0x8b5a3c
-    )
-);
-
-horses.push(
-    createHorse(
-        55,
-        45,
-        0x3d3028
-    )
-);
-
-horses.push(
-    createHorse(
-        110,
-        15,
-        0xd5b08a
-    )
-);
-
-
-// ------------------------------------------------------------
-// PRINCE / PRINCESS
-// ------------------------------------------------------------
-
-const names = [
-    ["Liora", "Princess"],
-    ["Elara", "Princess"],
-    ["Aurelia", "Princess"],
-    ["Seraphina", "Princess"],
-    ["Aren", "Prince"],
-    ["Elias", "Prince"],
-    ["Rowan", "Prince"]
-];
-
-const selected =
-    names[
-        Math.floor(
-            Math.random() * names.length
-        )
-    ];
-
-document.getElementById(
-    "characterName"
-).textContent =
-    selected[0];
-
-document.getElementById(
-    "characterType"
-).textContent =
-    selected[1];
-
-
-function createCharacter() {
-
-    const person =
-        new THREE.Group();
-
-    const dress =
-        new THREE.Mesh(
-            new THREE.ConeGeometry(
-                1.5,
-                3.5,
-                12
-            ),
-            new THREE.MeshStandardMaterial({
-                color:
-                    selected[1] === "Princess"
-                    ? 0xe8a9c7
-                    : 0x5875a8
-            })
-        );
-
-    dress.position.y = 2;
-
-    person.add(dress);
-
-
-    const head =
-        new THREE.Mesh(
-            new THREE.SphereGeometry(
-                .7,
-                16,
-                16
-            ),
-            new THREE.MeshStandardMaterial({
-                color: 0xf1c6a8
-            })
-        );
-
-    head.position.y = 4.3;
-
-    person.add(head);
-
-
-    const hair =
-        new THREE.Mesh(
-            new THREE.SphereGeometry(
-                .78,
-                16,
-                16
-            ),
-            new THREE.MeshStandardMaterial({
-                color: 0x4a2b23
-            })
-        );
-
-    hair.position.y = 4.7;
-
-    person.add(hair);
-
-
-    person.position.set(
-        20,
-        0,
-        10
-    );
-
-    scene.add(person);
-
-    return person;
-}
-
-
-const character =
-    createCharacter();
-
-
-// ------------------------------------------------------------
+// ----------------------------
 // FIREFLIES
-// ------------------------------------------------------------
+// ----------------------------
 
-const fireflyGeometry =
-    new THREE.BufferGeometry();
+function createFireflies() {
 
-const fireflyPositions = [];
+    const geometry =
+        new THREE.BufferGeometry();
 
-for (
-    let i = 0;
-    i < 250;
-    i++
-) {
+    const positions = [];
 
-    fireflyPositions.push(
-        (Math.random() - .5) * 500,
-        Math.random() * 12 + 1,
-        (Math.random() - .5) * 300
+    for (let i = 0; i < 300; i++) {
+
+        positions.push(
+            (Math.random() - 0.5) * 300,
+            2 + Math.random() * 35,
+            (Math.random() - 0.5) * 300
+        );
+    }
+
+
+    geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
     );
-}
 
-fireflyGeometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(
-        fireflyPositions,
-        3
-    )
-);
 
-const fireflies =
-    new THREE.Points(
-        fireflyGeometry,
+    const material =
         new THREE.PointsMaterial({
-            color: 0xffeaa0,
-            size: .35,
+            color: 0xfff6a0,
+            size: 0.8,
             transparent: true,
-            opacity: .8
-        })
-    );
-
-scene.add(fireflies);
+            opacity: 0.8
+        });
 
 
-// ------------------------------------------------------------
-// CONTROLS
-// ------------------------------------------------------------
-
-const controls =
-    new THREE.PointerLockControls(
-        camera,
-        document.body
-    );
-
-const enter =
-    document.getElementById("enter");
-
-enter.addEventListener(
-    "click",
-    () => {
-
-        document.getElementById(
-            "intro"
-        ).style.opacity = "0";
-
-        setTimeout(() => {
-            document.getElementById(
-                "intro"
-            ).style.display = "none";
-        }, 2000);
-
-        controls.lock();
-
-        startAmbientSound();
-    }
-);
-
-
-const keys = {};
-
-document.addEventListener(
-    "keydown",
-    event => {
-        keys[event.code] = true;
-    }
-);
-
-document.addEventListener(
-    "keyup",
-    event => {
-        keys[event.code] = false;
-    }
-);
-
-
-// ------------------------------------------------------------
-// AMBIENT AUDIO
-// ------------------------------------------------------------
-
-let audioStarted = false;
-
-function startAmbientSound() {
-
-    if (audioStarted) return;
-
-    audioStarted = true;
-
-    try {
-
-        const AudioContext =
-            window.AudioContext ||
-            window.webkitAudioContext;
-
-        const audio =
-            new AudioContext();
-
-        const master =
-            audio.createGain();
-
-        master.gain.value = .025;
-
-        master.connect(
-            audio.destination
+    const fireflies =
+        new THREE.Points(
+            geometry,
+            material
         );
 
 
-        // Soft drone
-        const oscillator =
-            audio.createOscillator();
-
-        oscillator.type = "sine";
-
-        oscillator.frequency.value =
-            196;
-
-        const gain =
-            audio.createGain();
-
-        gain.gain.value = .18;
-
-        oscillator.connect(gain);
-        gain.connect(master);
-
-        oscillator.start();
-
-
-        // Second harmonic
-        const oscillator2 =
-            audio.createOscillator();
-
-        oscillator2.type =
-            "sine";
-
-        oscillator2.frequency.value =
-            293.66;
-
-        const gain2 =
-            audio.createGain();
-
-        gain2.gain.value = .045;
-
-        oscillator2.connect(gain2);
-        gain2.connect(master);
-
-        oscillator2.start();
-
-
-        // Very soft wind noise
-        const buffer =
-            audio.createBuffer(
-                1,
-                audio.sampleRate * 2,
-                audio.sampleRate
-            );
-
-        const data =
-            buffer.getChannelData(0);
-
-        for (
-            let i = 0;
-            i < data.length;
-            i++
-        ) {
-
-            data[i] =
-                Math.random() * 2 - 1;
-        }
-
-        const noise =
-            audio.createBufferSource();
-
-        noise.buffer = buffer;
-        noise.loop = true;
-
-        const filter =
-            audio.createBiquadFilter();
-
-        filter.type = "lowpass";
-        filter.frequency.value = 650;
-
-        const noiseGain =
-            audio.createGain();
-
-        noiseGain.gain.value = .035;
-
-        noise.connect(filter);
-        filter.connect(noiseGain);
-        noiseGain.connect(master);
-
-        noise.start();
-
-    } catch (error) {
-
-        console.log(
-            "Ambient audio unavailable."
-        );
-    }
+    scene.add(fireflies);
 }
 
 
-// ------------------------------------------------------------
-// ANIMATION
-// ------------------------------------------------------------
+// ----------------------------
+// MOVEMENT
+// ----------------------------
 
-const clock =
-    new THREE.Clock();
+window.addEventListener(
+    "keydown",
+    function(e) {
+
+        keys[e.key.toLowerCase()] = true;
+    }
+);
+
+
+window.addEventListener(
+    "keyup",
+    function(e) {
+
+        keys[e.key.toLowerCase()] = false;
+    }
+);
+
+
+// ----------------------------
+// MOUSE LOOK
+// ----------------------------
+
+rendererMouseSetup = function() {
+
+    window.addEventListener(
+        "mousedown",
+        function(e) {
+
+            if (!started) return;
+
+            dragging = true;
+
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        }
+    );
+
+
+    window.addEventListener(
+        "mouseup",
+        function() {
+
+            dragging = false;
+        }
+    );
+
+
+    window.addEventListener(
+        "mousemove",
+        function(e) {
+
+            if (!dragging || !started) return;
+
+            const dx =
+                e.clientX - lastMouseX;
+
+            const dy =
+                e.clientY - lastMouseY;
+
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+
+
+            yaw -= dx * 0.003;
+
+            pitch -= dy * 0.003;
+
+            pitch =
+                Math.max(
+                    -1.2,
+                    Math.min(1.2, pitch)
+                );
+        }
+    );
+};
+
+rendererMouseSetup();
+
+
+// ----------------------------
+// ANIMATION
+// ----------------------------
 
 function animate() {
 
-    requestAnimationFrame(
-        animate
-    );
-
-    const delta =
-        Math.min(
-            clock.getDelta(),
-            .05
-        );
-
-    const speed =
-        28 * delta;
+    requestAnimationFrame(animate);
 
 
-    if (controls.isLocked) {
-
-        if (
-            keys["KeyW"] ||
-            keys["ArrowUp"]
-        ) {
-            controls.moveForward(speed);
-        }
-
-        if (
-            keys["KeyS"] ||
-            keys["ArrowDown"]
-        ) {
-            controls.moveForward(-speed);
-        }
-
-        if (
-            keys["KeyA"] ||
-            keys["ArrowLeft"]
-        ) {
-            controls.moveRight(-speed);
-        }
-
-        if (
-            keys["KeyD"] ||
-            keys["ArrowRight"]
-        ) {
-            controls.moveRight(speed);
-        }
-
-        // Don't let the player fly away.
-        camera.position.y = 7;
+    if (!camera || !renderer) {
+        return;
     }
 
 
-    // Horse breathing / gentle movement.
-    horses.forEach(
-        (horse, index) => {
+    const delta =
+        clock.getDelta();
 
-            horse.position.y =
-                Math.sin(
-                    performance.now() *
-                    .001 +
-                    index
-                ) * .04;
-        }
+
+    const speed =
+        25 * delta;
+
+
+    let forward = 0;
+    let sideways = 0;
+
+
+    if (
+        keys["w"] ||
+        keys["arrowup"]
+    ) {
+        forward += 1;
+    }
+
+
+    if (
+        keys["s"] ||
+        keys["arrowdown"]
+    ) {
+        forward -= 1;
+    }
+
+
+    if (
+        keys["a"] ||
+        keys["arrowleft"]
+    ) {
+        sideways -= 1;
+    }
+
+
+    if (
+        keys["d"] ||
+        keys["arrowright"]
+    ) {
+        sideways += 1;
+    }
+
+
+    const direction =
+        new THREE.Vector3(
+            Math.sin(yaw),
+            0,
+            Math.cos(yaw)
+        );
+
+
+    const right =
+        new THREE.Vector3(
+            Math.cos(yaw),
+            0,
+            -Math.sin(yaw)
+        );
+
+
+    camera.position.addScaledVector(
+        direction,
+        forward * speed
     );
 
 
-    // Character slowly moves.
-    character.position.x +=
-        Math.sin(
-            performance.now() * .0003
-        ) * .005;
-
-    character.rotation.y =
-        Math.sin(
-            performance.now() * .0002
-        ) * .5;
+    camera.position.addScaledVector(
+        right,
+        sideways * speed
+    );
 
 
-    // Fireflies drift.
-    fireflies.rotation.y +=
-        delta * .015;
+    camera.rotation.order = "YXZ";
 
+    camera.rotation.y = yaw;
 
-    // Slowly move clouds / sky feeling.
-    sky.rotation.y +=
-        delta * .002;
+    camera.rotation.x = pitch;
 
 
     renderer.render(
@@ -1413,16 +1053,16 @@ function animate() {
     );
 }
 
-animate();
 
-
-// ------------------------------------------------------------
+// ----------------------------
 // RESIZE
-// ------------------------------------------------------------
+// ----------------------------
 
 window.addEventListener(
     "resize",
-    () => {
+    function() {
+
+        if (!camera || !renderer) return;
 
         camera.aspect =
             window.innerWidth /
@@ -1437,14 +1077,56 @@ window.addEventListener(
     }
 );
 
+
+// ----------------------------
+// SIMPLE AMBIENT SOUND
+// ----------------------------
+
+function startAmbientSound() {
+
+    try {
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContext) return;
+
+        const audio =
+            new AudioContext();
+
+        const oscillator =
+            audio.createOscillator();
+
+        const gain =
+            audio.createGain();
+
+        oscillator.type = "sine";
+
+        oscillator.frequency.value = 110;
+
+        gain.gain.value = 0.025;
+
+        oscillator.connect(gain);
+
+        gain.connect(
+            audio.destination
+        );
+
+        oscillator.start();
+
+    } catch (e) {
+
+        console.log(
+            "Audio unavailable"
+        );
+    }
+}
+
 </script>
 
 </body>
 </html>
-"""
-
-components.html(
-    html,
+""",
     height=900,
-    scrolling=False
 )
